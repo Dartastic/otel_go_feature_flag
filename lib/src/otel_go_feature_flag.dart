@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_go_feature_flag_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_go_feature_flag';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class GoFeatureFlagResult {
+  /// Creates a result.
   const GoFeatureFlagResult({
     this.flagKey,
     this.valueType,
@@ -59,8 +60,13 @@ class GoFeatureFlagResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class GoFeatureFlagCallResult<T> {
+  /// Creates a call result.
   const GoFeatureFlagCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final GoFeatureFlagResult? result;
 }
@@ -87,32 +93,32 @@ Future<T> tracedGoFeatureFlag<T>({
   final span = _tracer().startSpan(
     'go_feature_flag $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.flagKey != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.flag.key',
           r.result!.flagKey!,
         ));
       }
       if (r.result!.valueType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.value_type',
           r.result!.valueType!,
         ));
       }
       if (r.result!.variant != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.variant',
           r.result!.variant!,
         ));
       }
       if (r.result!.reason != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.reason',
           r.result!.reason!,
         ));
@@ -124,37 +130,37 @@ Future<T> tracedGoFeatureFlag<T>({
         }
       }
       if (r.result!.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.error_code',
           r.result!.errorCode!,
         ));
       }
       if (r.result!.retriever != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.retriever',
           r.result!.retriever!,
         ));
       }
       if (r.result!.exporter != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.exporter',
           r.result!.exporter!,
         ));
       }
       if (r.result!.cacheRefresh != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'go_feature_flag.cache.refresh',
           r.result!.cacheRefresh!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'go_feature_flag.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -165,13 +171,13 @@ Future<T> tracedGoFeatureFlag<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
